@@ -1,3 +1,4 @@
+// src/Pages/Projects.jsx
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "../components/ui/button.jsx";
@@ -23,18 +24,31 @@ import {
   SelectValue,
 } from "../components/ui/select.jsx";
 
-// akan diganti firebase nanti
-import { supabase } from "../integrations/supabase/client";
-import { useUserRole } from "../hooks/useUserRole";
-import { useAuth } from "../hooks/useAuth";
+import { db } from "../lib/firebase";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  serverTimestamp,
+} from "firebase/firestore";
+import { useAuth } from "../hooks/useAuth.jsx";
+import { toast } from "sonner";
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const { isCoreTeamOrAbove } = useUserRole();
-  const { user } = useAuth();
+  const { user, userData } = useAuth(); // user = firebase auth user, userData = profile from Firestore
+
+  // Role check based on userData.role
+  const isCoreTeamOrAbove =
+      userData?.role && ["lead", "co_lead", "executive", "core"].includes(userData.role);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -46,69 +60,89 @@ export default function Projects() {
 
   useEffect(() => {
     fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProjects = async () => {
-    const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
+    setLoading(true);
+    try {
+      const q = query(collection(db, "projects"), orderBy("created_at", "desc"));
+      const querySnapshot = await getDocs(q);
 
-    if (!error && data) {
-      setProjects(data);
+      const projectsData = querySnapshot.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          title: data.title || "",
+          description: data.description || "",
+          status: data.status || "active",
+          progress: typeof data.progress === "number" ? data.progress : Number(data.progress) || 0,
+          // keep deadline as string if stored, or convert timestamp
+          deadline: data.deadline?.toDate ? data.deadline.toDate().toISOString() : data.deadline || null,
+          created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : data.created_at || null,
+          created_by: data.created_by || null,
+        };
+      });
+
+      setProjects(projectsData);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      toast.error("Failed to load projects");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      toast.error("You must be logged in to perform this action");
+      return;
+    }
 
     const projectData = {
       title: formData.title,
       description: formData.description,
       status: formData.status,
-      progress: formData.progress,
-      deadline: formData.deadline || null,
-      created_by: user.id,
+      progress: Number(formData.progress) || 0,
+      // store deadline as ISO string or null
+      deadline: formData.deadline ? formData.deadline : null,
+      created_by: user.uid,
     };
 
-    if (editingProject) {
-      const { error } = await supabase
-          .from("projects")
-          .update(projectData)
-          .eq("id", editingProject.id);
-
-      if (error) {
-        toast.error("Failed to update project");
+    try {
+      if (editingProject) {
+        const projectRef = doc(db, "projects", editingProject.id);
+        await updateDoc(projectRef, {
+          ...projectData,
+          updated_at: serverTimestamp(),
+        });
+        toast.success("Project updated");
       } else {
-        toast.success("Project updated successfully");
-        fetchProjects();
-        resetForm();
+        await addDoc(collection(db, "projects"), {
+          ...projectData,
+          created_at: serverTimestamp(),
+        });
+        toast.success("Project created");
       }
-    } else {
-      const { error } = await supabase.from("projects").insert([projectData]);
 
-      if (error) {
-        toast.error("Failed to create project");
-      } else {
-        toast.success("Project created successfully");
-        fetchProjects();
-        resetForm();
-      }
+      await fetchProjects();
+      resetForm();
+    } catch (error) {
+      console.error("Project save error:", error);
+      toast.error("Operation failed");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this project?")) return;
-
-    const { error } = await supabase.from("projects").delete().eq("id", id);
-
-    if (error) {
-      toast.error("Failed to delete project");
-    } else {
-      toast.success("Project deleted successfully");
+    if (!confirm("Delete this project?")) return;
+    try {
+      await deleteDoc(doc(db, "projects", id));
+      toast.success("Project deleted");
       fetchProjects();
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete");
     }
   };
 
@@ -127,10 +161,11 @@ export default function Projects() {
   const startEdit = (project) => {
     setEditingProject(project);
     setFormData({
-      title: project.title,
+      title: project.title || "",
       description: project.description || "",
-      status: project.status,
-      progress: project.progress,
+      status: project.status || "active",
+      progress: project.progress || 0,
+      // If project.deadline is ISO string, set to YYYY-MM-DD for date input
       deadline: project.deadline ? project.deadline.split("T")[0] : "",
     });
     setDialogOpen(true);
@@ -146,9 +181,7 @@ export default function Projects() {
           <div>
             <h2 className="text-3xl font-bold mb-2">Projects</h2>
             <p className="text-muted-foreground">
-              {isCoreTeamOrAbove
-                  ? "Manage community projects"
-                  : "View ongoing projects"}
+              {isCoreTeamOrAbove ? "Manage community projects" : "View ongoing projects"}
             </p>
           </div>
 
@@ -166,9 +199,7 @@ export default function Projects() {
                     <DialogTitle>
                       {editingProject ? "Edit Project" : "Create New Project"}
                     </DialogTitle>
-                    <DialogDescription>
-                      Fill in the project details below
-                    </DialogDescription>
+                    <DialogDescription>Fill in the project details below</DialogDescription>
                   </DialogHeader>
 
                   <form onSubmit={handleSubmit} className="space-y-4">
@@ -177,9 +208,7 @@ export default function Projects() {
                       <Input
                           id="title"
                           value={formData.title}
-                          onChange={(e) =>
-                              setFormData({ ...formData, title: e.target.value })
-                          }
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                           required
                       />
                     </div>
@@ -189,9 +218,7 @@ export default function Projects() {
                       <Textarea
                           id="description"
                           value={formData.description}
-                          onChange={(e) =>
-                              setFormData({ ...formData, description: e.target.value })
-                          }
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           rows={4}
                       />
                     </div>
@@ -201,9 +228,7 @@ export default function Projects() {
                         <Label>Status</Label>
                         <Select
                             value={formData.status}
-                            onValueChange={(value) =>
-                                setFormData({ ...formData, status: value })
-                            }
+                            onValueChange={(value) => setFormData({ ...formData, status: value })}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -221,9 +246,7 @@ export default function Projects() {
                         <Input
                             type="date"
                             value={formData.deadline}
-                            onChange={(e) =>
-                                setFormData({ ...formData, deadline: e.target.value })
-                            }
+                            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                         />
                       </div>
                     </div>
@@ -236,10 +259,7 @@ export default function Projects() {
                           max="100"
                           value={formData.progress}
                           onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                progress: parseInt(e.target.value),
-                              })
+                              setFormData({ ...formData, progress: parseInt(e.target.value, 10) })
                           }
                       />
                     </div>
@@ -248,9 +268,7 @@ export default function Projects() {
                       <Button type="button" variant="outline" onClick={resetForm}>
                         Cancel
                       </Button>
-                      <Button type="submit">
-                        {editingProject ? "Update" : "Create"} Project
-                      </Button>
+                      <Button type="submit">{editingProject ? "Update" : "Create"} Project</Button>
                     </div>
                   </form>
                 </DialogContent>
@@ -277,19 +295,11 @@ export default function Projects() {
 
                   {isCoreTeamOrAbove && (
                       <div className="flex gap-2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => startEdit(project)}
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => startEdit(project)}>
                           <Edit className="h-4 w-4" />
                         </Button>
 
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(project.id)}
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(project.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -297,9 +307,7 @@ export default function Projects() {
                 </div>
 
                 <h3 className="text-xl font-semibold mb-2">{project.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                  {project.description}
-                </p>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{project.description}</p>
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">

@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar.jsx";
-import { AppSidebar } from "../components/AppSidebar.jsx";
-import { Button } from "../components/ui/button.jsx";
+import { SidebarProvider, SidebarTrigger } from "./ui/sidebar.jsx";
+import { AppSidebar } from "./AppSidebar.jsx";
+import { Button } from "./ui/button.jsx";
 import { LogOut } from "lucide-react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth.jsx";
 
 export function Layout({ children }) {
   const { user, loading, signOut } = useAuth();

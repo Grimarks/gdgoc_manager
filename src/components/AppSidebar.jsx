@@ -1,5 +1,5 @@
 import { LayoutDashboard, Users, Calendar, Award, FolderKanban } from "lucide-react";
-import { NavLink } from "../components/NavLink.jsx";
+import { NavLink } from "./NavLink.jsx";
 import { useLocation } from "react-router-dom";
 
 import {

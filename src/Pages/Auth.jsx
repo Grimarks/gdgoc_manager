@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { supabase } from "@/integrations/supabase/client"; // nanti diganti firebase
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input.jsx";
 import { Label } from "../components/ui/label.jsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card.jsx";
+import { toast } from "sonner";
+
+import { auth, db } from "../lib/firebase";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,31 +27,26 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
+        await signInWithEmailAndPassword(auth, email, password);
         toast.success("Logged in successfully!");
         navigate("/");
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/`,
-          },
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email,
+          full_name: fullName,
+          role: "member", // default role
+          created_at: serverTimestamp(),
         });
 
-        if (error) throw error;
-
-        toast.success("Account created! You can now log in.");
+        toast.success("Account created successfully!");
         setIsLogin(true);
       }
     } catch (error) {
+      console.error(error);
       toast.error(error.message);
     } finally {
       setLoading(false);

@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card.jsx";
+import { Card } from "./ui/card.jsx";
 
 export function StatCard({ title, value, icon: Icon, trend, color }) {
   const colorClasses = {

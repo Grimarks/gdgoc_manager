@@ -11,7 +11,9 @@ import {
   SelectValue,
 } from "../components/ui/select.jsx";
 import { Avatar, AvatarFallback } from "../components/ui/avatar.jsx";
-import { supabase } from "../integrations/supabase/client";
+
+import { db } from "../lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function Members() {
   const [members, setMembers] = useState([]);
@@ -24,23 +26,19 @@ export default function Members() {
   }, []);
 
   const fetchMembers = async () => {
-    const { data, error } = await supabase
-        .from("profiles")
-        .select(`
-        id,
-        email,
-        full_name,
-        created_at,
-        user_roles (role)
-      `);
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
 
-    if (!error && data) {
-      setMembers(
-          data.map((member) => ({
-            ...member,
-            roles: member.user_roles || [],
-          }))
-      );
+      const membersData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        roles: [{ role: doc.data().role || "member" }],
+        created_at: doc.data().created_at?.toDate?.() || new Date(),
+      }));
+
+      setMembers(membersData);
+    } catch (error) {
+      console.error("Error fetching members:", error);
     }
 
     setLoading(false);
@@ -94,7 +92,7 @@ export default function Members() {
         <Card className="p-6">
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                   placeholder="Search members..."
                   value={searchQuery}
@@ -155,8 +153,7 @@ export default function Members() {
                     <div className="flex items-center gap-4">
                       <div className="text-right hidden sm:block">
                         <p className="text-sm text-muted-foreground">
-                          Joined{" "}
-                          {new Date(member.created_at).toLocaleDateString()}
+                          Joined {new Date(member.created_at).toLocaleDateString()}
                         </p>
                       </div>
 
