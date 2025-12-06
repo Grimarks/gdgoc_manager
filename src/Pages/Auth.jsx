@@ -59,10 +59,10 @@ export default function Auth() {
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="flex gap-1">
-                <div className="w-2 h-8 bg-gdg-blue rounded-full" />
-                <div className="w-2 h-8 bg-gdg-red rounded-full" />
-                <div className="w-2 h-8 bg-gdg-yellow rounded-full" />
-                <div className="w-2 h-8 bg-gdg-green rounded-full" />
+                <div className="w-2 h-8 bg-gdgblue rounded-full" />
+                <div className="w-2 h-8 bg-gdgred rounded-full" />
+                <div className="w-2 h-8 bg-gdgyellow rounded-full" />
+                <div className="w-2 h-8 bg-gdggreen rounded-full" />
               </div>
               <div>
                 <CardTitle className="text-2xl">GDGoC UNSRI</CardTitle>

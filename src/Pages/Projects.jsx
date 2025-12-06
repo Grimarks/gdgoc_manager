@@ -44,9 +44,8 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const { user, userData } = useAuth(); // user = firebase auth user, userData = profile from Firestore
+  const { user, userData } = useAuth();
 
-  // Role check based on userData.role
   const isCoreTeamOrAbove =
       userData?.role && ["lead", "co_lead", "executive", "core"].includes(userData.role);
 
@@ -60,7 +59,6 @@ export default function Projects() {
 
   useEffect(() => {
     fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProjects = async () => {
@@ -69,22 +67,28 @@ export default function Projects() {
       const q = query(collection(db, "projects"), orderBy("created_at", "desc"));
       const querySnapshot = await getDocs(q);
 
-      const projectsData = querySnapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          title: data.title || "",
-          description: data.description || "",
-          status: data.status || "active",
-          progress: typeof data.progress === "number" ? data.progress : Number(data.progress) || 0,
-          // keep deadline as string if stored, or convert timestamp
-          deadline: data.deadline?.toDate ? data.deadline.toDate().toISOString() : data.deadline || null,
-          created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : data.created_at || null,
-          created_by: data.created_by || null,
-        };
-      });
-
-      setProjects(projectsData);
+      setProjects(
+          querySnapshot.docs.map((d) => {
+            const data = d.data();
+            return {
+              id: d.id,
+              title: data.title || "",
+              description: data.description || "",
+              status: data.status || "active",
+              progress:
+                  typeof data.progress === "number"
+                      ? data.progress
+                      : Number(data.progress) || 0,
+              deadline: data.deadline?.toDate
+                  ? data.deadline.toDate().toISOString()
+                  : data.deadline || null,
+              created_at: data.created_at?.toDate
+                  ? data.created_at.toDate().toISOString()
+                  : data.created_at || null,
+              created_by: data.created_by || null,
+            };
+          })
+      );
     } catch (error) {
       console.error("Error fetching projects:", error);
       toast.error("Failed to load projects");
@@ -95,25 +99,20 @@ export default function Projects() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) {
-      toast.error("You must be logged in to perform this action");
-      return;
-    }
+    if (!user) return toast.error("You must be logged in");
 
     const projectData = {
       title: formData.title,
       description: formData.description,
       status: formData.status,
       progress: Number(formData.progress) || 0,
-      // store deadline as ISO string or null
-      deadline: formData.deadline ? formData.deadline : null,
+      deadline: formData.deadline || null,
       created_by: user.uid,
     };
 
     try {
       if (editingProject) {
-        const projectRef = doc(db, "projects", editingProject.id);
-        await updateDoc(projectRef, {
+        await updateDoc(doc(db, "projects", editingProject.id), {
           ...projectData,
           updated_at: serverTimestamp(),
         });
@@ -129,7 +128,7 @@ export default function Projects() {
       await fetchProjects();
       resetForm();
     } catch (error) {
-      console.error("Project save error:", error);
+      console.error(error);
       toast.error("Operation failed");
     }
   };
@@ -141,7 +140,6 @@ export default function Projects() {
       toast.success("Project deleted");
       fetchProjects();
     } catch (error) {
-      console.error("Delete error:", error);
       toast.error("Failed to delete");
     }
   };
@@ -161,76 +159,87 @@ export default function Projects() {
   const startEdit = (project) => {
     setEditingProject(project);
     setFormData({
-      title: project.title || "",
-      description: project.description || "",
-      status: project.status || "active",
-      progress: project.progress || 0,
-      // If project.deadline is ISO string, set to YYYY-MM-DD for date input
+      title: project.title,
+      description: project.description,
+      status: project.status,
+      progress: project.progress,
       deadline: project.deadline ? project.deadline.split("T")[0] : "",
     });
     setDialogOpen(true);
   };
 
-  if (loading) {
-    return <div className="p-6">Loading...</div>;
-  }
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
-      <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-8 animate-in fade-in duration-500">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Projects</h2>
-            <p className="text-muted-foreground">
-              {isCoreTeamOrAbove ? "Manage community projects" : "View ongoing projects"}
+            <h2 className="text-3xl font-bold text-black">Projects</h2>
+            <p className="text-gray-600">
+              {isCoreTeamOrAbove
+                  ? "Manage community projects"
+                  : "View ongoing projects"}
             </p>
           </div>
 
           {isCoreTeamOrAbove && (
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2" onClick={resetForm}>
-                    <Plus className="h-4 w-4" />
+                  <Button
+                      className="bg-[#4285F4] hover:opacity-90 text-white px-4 py-2 rounded-lg shadow"
+                      onClick={resetForm}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
                     New Project
                   </Button>
                 </DialogTrigger>
 
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl bg-white rounded-xl p-6">
                   <DialogHeader>
-                    <DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-black">
                       {editingProject ? "Edit Project" : "Create New Project"}
                     </DialogTitle>
-                    <DialogDescription>Fill in the project details below</DialogDescription>
+                    <DialogDescription className="text-gray-600">
+                      Fill in the project details below
+                    </DialogDescription>
                   </DialogHeader>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
+                  <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                    <div>
                       <Label htmlFor="title">Project Title</Label>
                       <Input
                           id="title"
+                          className="bg-white border border-gray-300"
                           value={formData.title}
-                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                          onChange={(e) =>
+                              setFormData({ ...formData, title: e.target.value })
+                          }
                           required
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
+                    <div>
+                      <Label>Description</Label>
                       <Textarea
-                          id="description"
-                          value={formData.description}
-                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          className="bg-white border border-gray-300"
                           rows={4}
+                          value={formData.description}
+                          onChange={(e) =>
+                              setFormData({ ...formData, description: e.target.value })
+                          }
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
+                      <div>
                         <Label>Status</Label>
                         <Select
                             value={formData.status}
-                            onValueChange={(value) => setFormData({ ...formData, status: value })}
+                            onValueChange={(value) =>
+                                setFormData({ ...formData, status: value })
+                            }
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white border border-gray-300">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -241,17 +250,20 @@ export default function Projects() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
+                      <div>
                         <Label>Deadline</Label>
                         <Input
                             type="date"
+                            className="bg-white border border-gray-300"
                             value={formData.deadline}
-                            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({ ...formData, deadline: e.target.value })
+                            }
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div>
                       <Label>Progress: {formData.progress}%</Label>
                       <Input
                           type="range"
@@ -259,16 +271,28 @@ export default function Projects() {
                           max="100"
                           value={formData.progress}
                           onChange={(e) =>
-                              setFormData({ ...formData, progress: parseInt(e.target.value, 10) })
+                              setFormData({
+                                ...formData,
+                                progress: parseInt(e.target.value, 10),
+                              })
                           }
                       />
                     </div>
 
-                    <div className="flex gap-2 justify-end">
-                      <Button type="button" variant="outline" onClick={resetForm}>
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button
+                          type="button"
+                          className="border border-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-100"
+                          onClick={resetForm}
+                      >
                         Cancel
                       </Button>
-                      <Button type="submit">{editingProject ? "Update" : "Create"} Project</Button>
+                      <Button
+                          type="submit"
+                          className="bg-[#4285F4] hover:opacity-90 text-white px-4 py-2 rounded-lg"
+                      >
+                        {editingProject ? "Update" : "Create"} Project
+                      </Button>
                     </div>
                   </form>
                 </DialogContent>
@@ -279,46 +303,84 @@ export default function Projects() {
         {/* Project Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-              <Card key={project.id} className="p-6 hover:shadow-lg transition-shadow">
+              <Card
+                  key={project.id}
+                  className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition"
+              >
+                {/* Badge Status */}
                 <div className="flex items-start justify-between mb-3">
                   <Badge
-                      variant={
-                        project.status === "active"
-                            ? "default"
-                            : project.status === "completed"
-                                ? "secondary"
-                                : "outline"
-                      }
+                      className="
+                  px-3 py-1 text-white rounded
+                  capitalize
+                  cursor-default
+                "
+                      style={{
+                        backgroundColor:
+                            project.status === "active"
+                                ? "#0F9D58"
+                                : project.status === "completed"
+                                    ? "#4285F4"
+                                    : "#F4B400",
+                      }}
                   >
                     {project.status}
                   </Badge>
 
                   {isCoreTeamOrAbove && (
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => startEdit(project)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                      <div className="flex gap-1">
+                        <button
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                            onClick={() => startEdit(project)}
+                        >
+                          <Edit className="h-4 w-4 text-gray-700" />
+                        </button>
 
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(project.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <button
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                            onClick={() => handleDelete(project.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </button>
                       </div>
                   )}
                 </div>
 
-                <h3 className="text-xl font-semibold mb-2">{project.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{project.description}</p>
+                <h3 className="text-xl font-semibold text-black mb-2">
+                  {project.title}
+                </h3>
 
-                <div className="space-y-2">
+                <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                  {project.description}
+                </p>
+
+                {/* Progress */}
+                <div className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium">{project.progress}%</span>
+                    <span className="text-gray-600">Progress</span>
+                    <span className="font-semibold">{project.progress}%</span>
                   </div>
 
-                  <Progress value={project.progress} />
+                  <Progress
+                      value={project.progress}
+                      className="h-2 rounded-full"
+                      indicatorClassName="rounded-full"
+                      style={{
+                        "--tw-bg-opacity": 1,
+                        backgroundColor: "#e5e7eb",
+                      }}
+                      indicatorStyle={{
+                        backgroundColor:
+                            project.progress < 50
+                                ? "#DB4437"
+                                : project.progress < 100
+                                    ? "#F4B400"
+                                    : "#0F9D58",
+                      }}
+                  />
 
                   {project.deadline && (
-                      <p className="text-xs text-muted-foreground mt-2">
+                      <p className="text-xs text-gray-500 mt-1">
                         Deadline: {new Date(project.deadline).toLocaleDateString()}
                       </p>
                   )}
@@ -328,13 +390,17 @@ export default function Projects() {
         </div>
 
         {projects.length === 0 && (
-            <Card className="p-12">
+            <Card className="p-12 bg-white border border-gray-200 rounded-xl">
               <div className="text-center">
-                <p className="text-muted-foreground">No projects yet.</p>
+                <p className="text-gray-600">No projects yet.</p>
+
                 {isCoreTeamOrAbove && (
-                    <Button className="mt-4" onClick={() => setDialogOpen(true)}>
+                    <button
+                        className="mt-4 bg-[#4285F4] text-white px-4 py-2 rounded-lg hover:opacity-90"
+                        onClick={() => setDialogOpen(true)}
+                    >
                       Create your first project
-                    </Button>
+                    </button>
                 )}
               </div>
             </Card>

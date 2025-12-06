@@ -80,19 +80,18 @@ export default function Members() {
 
   return (
       <div className="space-y-6 animate-in fade-in duration-500">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Members</h2>
-            <p className="text-muted-foreground">
-              Community members ({members.length})
-            </p>
-          </div>
+
+        <div>
+          <h2 className="text-3xl font-bold mb-1">Members</h2>
+          <p className="text-gray-500">Community members ({members.length})</p>
         </div>
 
-        <Card className="p-6">
+        <Card className="p-6 bg-white border rounded-xl shadow-sm">
+
+          {/* Search + Filter */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                   placeholder="Search members..."
                   value={searchQuery}
@@ -102,10 +101,11 @@ export default function Members() {
             </div>
 
             <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-full sm:w-40">
-                <Filter className="h-4 w-4 mr-2" />
+              <SelectTrigger className="w-full sm:w-40 border-gray-300">
+                <Filter className="h-4 w-4 mr-2 text-gray-500" />
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="lead">Lead</SelectItem>
@@ -117,53 +117,43 @@ export default function Members() {
             </Select>
           </div>
 
+          {/* Members */}
           <div className="space-y-3">
             {filteredMembers.map((member) => {
-              const displayName = member.full_name || member.email;
-
-              const initials = member.full_name
-                  ? member.full_name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()
-                  : member.email.substring(0, 2).toUpperCase();
-
               const roleDisplay = getRoleDisplay(member.roles);
 
               return (
                   <div
                       key={member.id}
-                      className="flex items-center justify-between p-4 rounded-lg bg-accent hover:shadow-md transition-all"
+                      className="flex items-center justify-between p-4 rounded-lg bg-white border hover:shadow transition"
                   >
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
+                        <AvatarFallback className="bg-[#4285F4] text-white">
                           {initials}
                         </AvatarFallback>
                       </Avatar>
+
                       <div>
                         <h4 className="font-medium">{displayName}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {member.email}
-                        </p>
+                        <p className="text-sm text-gray-500">{member.email}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <div className="text-right hidden sm:block">
-                        <p className="text-sm text-muted-foreground">
-                          Joined {new Date(member.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
+                      <p className="text-sm text-gray-400 hidden sm:block">
+                        Joined {new Date(member.created_at).toLocaleDateString()}
+                      </p>
 
                       <Badge
-                          variant={
+                          className={
                             roleDisplay === "Lead" || roleDisplay === "Co Lead"
-                                ? "default"
-                                : roleDisplay === "Core" || roleDisplay === "Executive"
-                                    ? "secondary"
-                                    : "outline"
+                                ? "bg-[#4285F4] text-white"
+                                : roleDisplay === "Executive"
+                                    ? "bg-[#DB4437] text-white"
+                                    : roleDisplay === "Core"
+                                        ? "bg-[#0F9D58] text-white"
+                                        : "bg-gray-200 text-gray-600"
                           }
                       >
                         {roleDisplay}
@@ -175,10 +165,8 @@ export default function Members() {
           </div>
 
           {filteredMembers.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">
-                  No members found matching your criteria.
-                </p>
+              <div className="text-center py-10">
+                <p className="text-gray-400">No members found.</p>
               </div>
           )}
         </Card>

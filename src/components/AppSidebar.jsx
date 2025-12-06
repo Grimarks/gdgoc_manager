@@ -25,13 +25,13 @@ const items = [
 export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
-  // eslint-disable-next-line no-unused-vars
-  const currentPath = location.pathname;
 
   return (
       <Sidebar className={open ? "w-64" : "w-16"} collapsible="icon">
-        <SidebarContent>
-          <div className="p-6 border-b border-sidebar-border">
+        <SidebarContent className="bg-white border-r border-gray-200">
+
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="flex gap-1">
                 <div className="w-2 h-8 bg-gdg-blue rounded-full" />
@@ -41,15 +41,19 @@ export function AppSidebar() {
               </div>
               {open && (
                   <div>
-                    <h2 className="text-lg font-semibold">GDGoC</h2>
-                    <p className="text-xs text-muted-foreground">UNSRI</p>
+                    <h2 className="text-lg font-semibold text-gray-900">GDGoC</h2>
+                    <p className="text-xs text-gray-500">UNSRI</p>
                   </div>
               )}
             </div>
           </div>
 
+          {/* Menu */}
           <SidebarGroup>
-            <SidebarGroupLabel>Management</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-gray-700">
+              Management
+            </SidebarGroupLabel>
+
             <SidebarGroupContent>
               <SidebarMenu>
                 {items.map((item) => (
@@ -58,8 +62,8 @@ export function AppSidebar() {
                         <NavLink
                             to={item.url}
                             end
-                            className="hover:bg-sidebar-accent transition-colors"
-                            activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                            className="hover:bg-gray-100 px-3 py-2 rounded-lg transition"
+                            activeClassName="bg-gray-200 font-medium text-gray-900"
                         >
                           <item.icon className="h-4 w-4" />
                           {open && <span>{item.title}</span>}
@@ -70,6 +74,7 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
         </SidebarContent>
       </Sidebar>
   );
