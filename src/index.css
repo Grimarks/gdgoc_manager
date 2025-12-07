@@ -1,52 +1,27 @@
 @import "tailwindcss";
 @tailwind utilities;
 
-/* -----------------------------------------
-   Design System — Tailwind v4 (@theme)
-   Semua warna wajib HSL (%).
-   Light + Dark mode + Sidebar + Semantic Colors
------------------------------------------- */
-
 @theme {
-    /* BASE COLORS */
     --color-background: hsl(0 0% 98%);
     --color-foreground: hsl(222 47% 11%);
-
     --color-card: hsl(0 0% 100%);
     --color-card-foreground: hsl(222 47% 11%);
-
     --color-popover: hsl(0 0% 100%);
     --color-popover-foreground: hsl(222 47% 11%);
-
-    /* PRIMARY SYSTEM */
     --color-primary: hsl(220 90% 56%);
     --color-primary-foreground: hsl(0 0% 100%);
-
-    /* SECONDARY */
     --color-secondary: hsl(220 90% 96%);
     --color-secondary-foreground: hsl(220 90% 26%);
-
-    /* MUTED */
     --color-muted: hsl(210 40% 96%);
     --color-muted-foreground: hsl(215 16% 47%);
-
-    /* ACCENT */
     --color-accent: hsl(220 90% 96%);
     --color-accent-foreground: hsl(220 90% 26%);
-
-    /* DESTRUCTIVE */
     --color-destructive: hsl(4 90% 58%);
     --color-destructive-foreground: hsl(0 0% 100%);
-
-    /* BORDERS / INPUT / RING */
     --color-border: hsl(220 13% 91%);
     --color-input: hsl(220 13% 91%);
     --color-ring: hsl(220 90% 56%);
-
-    /* RADIUS */
     --radius-base: 0.75rem;
-
-    /* SIDEBAR */
     --color-sidebar-background: hsl(0 0% 100%);
     --color-sidebar-foreground: hsl(222 47% 11%);
     --color-sidebar-primary: hsl(220 90% 56%);
@@ -55,23 +30,15 @@
     --color-sidebar-accent-foreground: hsl(220 90% 26%);
     --color-sidebar-border: hsl(220 13% 91%);
     --color-sidebar-ring: hsl(220 90% 56%);
-
-    /* GOOGLE GDG COLORS */
     --color-gdgblue: hsl(220 90% 56%);
     --color-gdgred: hsl(4 90% 58%);
     --color-gdgyellow: hsl(45 100% 51%);
     --color-gdggreen: hsl(142 71% 45%);
-
-    /* SEMANTIC */
     --color-success: hsl(142 71% 45%);
     --color-success-foreground: hsl(0 0% 100%);
     --color-warning: hsl(45 100% 51%);
     --color-warning-foreground: hsl(222 47% 11%);
-
-    /* TRANSITIONS */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    /* FONT */
     --font-sans: "Work Sans", sans-serif;
 }
 
@@ -90,3 +57,434 @@
         font-weight: 600;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*Serius scroll sampai sini? makasih ya*/
+/*Kenapa pakai hsl? sengaja biar lihat nya kesal aja hehehe*/

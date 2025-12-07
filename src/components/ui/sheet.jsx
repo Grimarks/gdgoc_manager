@@ -23,7 +23,6 @@ const SheetOverlay = React.forwardRef(({ className, ...props }, ref) => (
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-    // use explicit white background, subtle shadow, and smooth transitions
     "fixed z-50 gap-4 bg-white p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
     {
         variants: {
@@ -45,7 +44,6 @@ const SheetContent = React.forwardRef(({ side = "right", className, children, ..
         <SheetOverlay />
         <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
             {children}
-            {/* close button: light gray background with subtle hover, icon dark */}
             <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm bg-gray-100 opacity-90 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none">
                 <X className="h-4 w-4 text-gray-700" />
                 <span className="sr-only">Close</span>

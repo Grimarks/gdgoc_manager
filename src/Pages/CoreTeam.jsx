@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback } from "../components/ui/avatar.jsx";
 import { db } from "../lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
-// Color mapping
 const getColorForRole = (role) => {
     const colors = {
         lead: "blue",
@@ -19,7 +18,6 @@ const getColorForRole = (role) => {
     return colors[role] || "blue";
 };
 
-// Convert role to readable label
 const getRoleDisplay = (roles) => {
     if (!roles || roles.length === 0) return "Core Member";
 
@@ -45,20 +43,28 @@ export default function CoreTeam() {
 
     const fetchCoreTeam = async () => {
         try {
-            const q = query(
-                collection(db, "users"),
-                where("role", "in", ["lead", "co_lead", "executive", "core"])
-            );
+            const snapshot = await getDocs(collection(db, "users"));
 
-            const snapshot = await getDocs(q);
+            const mapped = snapshot.docs
+                .map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    roles: [{ role: doc.data().role }],
+                }))
+                .filter((user) =>
+                    ["lead", "co_lead", "executive", "core"].includes(user.role)
+                );
 
-            const mapped = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-                roles: [{ role: doc.data().role }], // agar UI lama tetap aman
-            }));
+            const roleOrder = ["lead", "co_lead", "executive", "core"];
 
-            setCoreTeam(mapped);
+            const sorted = mapped.sort((a, b) => {
+                const roleA = a.roles[0]?.role;
+                const roleB = b.roles[0]?.role;
+
+                return roleOrder.indexOf(roleA) - roleOrder.indexOf(roleB);
+            });
+
+            setCoreTeam(sorted);
         } catch (error) {
             console.error("Error fetching core team:", error);
         }
@@ -101,7 +107,7 @@ export default function CoreTeam() {
                             <div className="flex flex-col items-center text-center mb-4">
                                 <Avatar className="h-20 w-20 mb-4">
                                     <AvatarFallback
-                                        className={`bg-gdg-${colorClass} text-white text-xl`}
+                                        className={`bg-gdg${colorClass} text-white text-xl`}
                                     >
                                         {initials}
                                     </AvatarFallback>

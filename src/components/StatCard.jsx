@@ -2,10 +2,10 @@ import { Card } from "./ui/card.jsx";
 
 export function StatCard({ title, value, icon: Icon, trend, color }) {
   const colorClasses = {
-    blue: "bg-gdg-blue/10 text-gdg-blue",
-    red: "bg-gdg-red/10 text-gdg-red",
-    yellow: "bg-gdg-yellow/10 text-gdg-yellow",
-    green: "bg-gdg-green/10 text-gdg-green",
+    blue: "bg-gdgblue",
+    red: "bg-gdgred",
+    yellow: "bg-gdgyello",
+    green: "bg-gdggreen",
   };
 
   return (

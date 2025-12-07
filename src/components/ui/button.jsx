@@ -4,7 +4,6 @@ import { cva } from "class-variance-authority";
 
 import { cn } from "../../lib/utils";
 
-// GDG Colors → dari CSS: var(--gdg-blue), var(--gdg-red), dll
 const buttonVariants = cva(
     "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gdg-blue))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
     {
@@ -12,9 +11,9 @@ const buttonVariants = cva(
             variant: {
                 // PURE WHITE
                 default:
-                    "bg-white text-foreground border border-border hover:bg-muted",
+                    "bg-white text-foreground border border-border hover:bg-gdgred",
 
-                // GOOGLE BLUE accent
+                // GOOGLE BLUE
                 blue:
                     "bg-[hsl(var(--gdg-blue))] text-white hover:bg-[hsl(var(--gdg-blue))]/80",
 
@@ -26,18 +25,17 @@ const buttonVariants = cva(
                 outline:
                     "border border-border bg-white hover:bg-muted hover:text-foreground",
 
-                // GOOGLE GREEN (optional)
+                // GOOGLE GREEN
                 success:
                     "bg-[hsl(var(--gdg-green))] text-white hover:bg-[hsl(var(--gdg-green))]/80",
 
-                // GOOGLE YELLOW (optional)
+                // GOOGLE YELLOW
                 warning:
                     "bg-[hsl(var(--gdg-yellow))] text-foreground hover:bg-[hsl(var(--gdg-yellow))]/80",
 
-                // Ghost = transparan
+                // HUUU IM A GHOST IM transparant(lupa inggris nya)
                 ghost: "hover:bg-muted hover:text-foreground",
 
-                // Link = Google Blue text
                 link: "text-[hsl(var(--gdg-blue))] underline-offset-4 hover:underline",
             },
 

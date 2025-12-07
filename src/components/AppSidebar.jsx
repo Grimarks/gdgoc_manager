@@ -1,7 +1,4 @@
-import { LayoutDashboard, Users, Calendar, Award, FolderKanban } from "lucide-react";
-import { NavLink } from "./NavLink.jsx";
-import { useLocation } from "react-router-dom";
-
+// AppSidebar.jsx
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +9,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "../components/ui/sidebar.jsx";
+} from "./ui/sidebar.jsx";
+import { LayoutDashboard, Users, Calendar, Award, FolderKanban } from "lucide-react";
+import { NavLink } from "./NavLink.jsx";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -24,21 +23,21 @@ const items = [
 
 export function AppSidebar() {
   const { open } = useSidebar();
-  const location = useLocation();
 
   return (
-      <Sidebar className={open ? "w-64" : "w-16"} collapsible="icon">
-        <SidebarContent className="bg-white border-r border-gray-200">
+      <Sidebar className="border-r border-gray-200 bg-white pt-10">
+        <SidebarContent>
 
           {/* Header */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center gap-3">
+          <div className="pt-10 p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
               <div className="flex gap-1">
-                <div className="w-2 h-8 bg-gdg-blue rounded-full" />
-                <div className="w-2 h-8 bg-gdg-red rounded-full" />
-                <div className="w-2 h-8 bg-gdg-yellow rounded-full" />
-                <div className="w-2 h-8 bg-gdg-green rounded-full" />
+                <div className="w-2 h-8 bg-gdgblue rounded-full" />
+                <div className="w-2 h-8 bg-gdgred rounded-full" />
+                <div className="w-2 h-8 bg-gdgyellow rounded-full" />
+                <div className="w-2 h-8 bg-gdggreen rounded-full" />
               </div>
+
               {open && (
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">GDGoC</h2>
@@ -48,7 +47,7 @@ export function AppSidebar() {
             </div>
           </div>
 
-          {/* Menu */}
+          {/* Sidebar Menu */}
           <SidebarGroup>
             <SidebarGroupLabel className="text-gray-700">
               Management
@@ -74,7 +73,6 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-
         </SidebarContent>
       </Sidebar>
   );

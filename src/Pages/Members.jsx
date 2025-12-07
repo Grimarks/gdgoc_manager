@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Trash2 } from "lucide-react";
 import { Input } from "../components/ui/input.jsx";
 import { Card } from "../components/ui/card.jsx";
 import { Badge } from "../components/ui/badge.jsx";
@@ -11,15 +11,22 @@ import {
   SelectValue,
 } from "../components/ui/select.jsx";
 import { Avatar, AvatarFallback } from "../components/ui/avatar.jsx";
-
+import { Button } from "../components/ui/button.jsx";
 import { db } from "../lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { toast } from "sonner";
+import { useAuth } from "../hooks/useAuth.jsx";
 
 export default function Members() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+
+  const { userData } = useAuth();
+
+  const canManage =
+      userData?.role === "lead" || userData?.role === "co_lead";
 
   useEffect(() => {
     fetchMembers();
@@ -32,7 +39,7 @@ export default function Members() {
       const membersData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        roles: [{ role: doc.data().role || "member" }],
+        role: doc.data().role || "member",
         created_at: doc.data().created_at?.toDate?.() || new Date(),
       }));
 
@@ -44,19 +51,28 @@ export default function Members() {
     setLoading(false);
   };
 
-  const getRoleDisplay = (roles) => {
-    if (!roles || roles.length === 0) return "Member";
+  const updateMemberRole = async (memberId, newRole) => {
+    try {
+      await updateDoc(doc(db, "users", memberId), { role: newRole });
+      toast.success("Member role updated");
+      fetchMembers();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update role");
+    }
+  };
 
-    const highestRole = roles
-        .map((r) => r.role)
-        .sort((a, b) => {
-          const order = ["member", "core", "executive", "co_lead", "lead"];
-          return order.indexOf(b) - order.indexOf(a);
-        })[0];
+  const removeMember = async (memberId) => {
+    if (!confirm("Are you sure you want to remove this member?")) return;
 
-    return highestRole
-        .replace("_", " ")
-        .replace(/\b\w/g, (l) => l.toUpperCase());
+    try {
+      await deleteDoc(doc(db, "users", memberId));
+      toast.success("Member removed");
+      fetchMembers();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to remove member");
+    }
   };
 
   const filteredMembers = members.filter((member) => {
@@ -66,10 +82,8 @@ export default function Members() {
             .includes(searchQuery.toLowerCase()) ||
         member.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const memberRole = getRoleDisplay(member.roles);
     const matchesRole =
-        roleFilter === "all" ||
-        memberRole.toLowerCase().includes(roleFilter.toLowerCase());
+        roleFilter === "all" || member.role.toLowerCase() === roleFilter.toLowerCase();
 
     return matchesSearch && matchesRole;
   });
@@ -80,15 +94,12 @@ export default function Members() {
 
   return (
       <div className="space-y-6 animate-in fade-in duration-500">
-
         <div>
           <h2 className="text-3xl font-bold mb-1">Members</h2>
           <p className="text-gray-500">Community members ({members.length})</p>
         </div>
 
         <Card className="p-6 bg-white border rounded-xl shadow-sm">
-
-          {/* Search + Filter */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -109,7 +120,7 @@ export default function Members() {
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="lead">Lead</SelectItem>
-                <SelectItem value="co_lead">Co-Lead</SelectItem>
+                <SelectItem value="co_lead">Co Lead</SelectItem>
                 <SelectItem value="executive">Executive</SelectItem>
                 <SelectItem value="core">Core</SelectItem>
                 <SelectItem value="member">Member</SelectItem>
@@ -117,10 +128,16 @@ export default function Members() {
             </Select>
           </div>
 
-          {/* Members */}
           <div className="space-y-3">
             {filteredMembers.map((member) => {
-              const roleDisplay = getRoleDisplay(member.roles);
+              const displayName = member.full_name || member.email;
+              const initials = member.full_name
+                  ? member.full_name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                  : member.email.substring(0, 2).toUpperCase();
 
               return (
                   <div
@@ -145,19 +162,48 @@ export default function Members() {
                         Joined {new Date(member.created_at).toLocaleDateString()}
                       </p>
 
-                      <Badge
-                          className={
-                            roleDisplay === "Lead" || roleDisplay === "Co Lead"
-                                ? "bg-[#4285F4] text-white"
-                                : roleDisplay === "Executive"
-                                    ? "bg-[#DB4437] text-white"
-                                    : roleDisplay === "Core"
-                                        ? "bg-[#0F9D58] text-white"
-                                        : "bg-gray-200 text-gray-600"
-                          }
-                      >
-                        {roleDisplay}
-                      </Badge>
+                      {canManage ? (
+                          <div className="flex items-center gap-2">
+                            <Select
+                                value={member.role}
+                                onValueChange={(val) => updateMemberRole(member.id, val)}
+                            >
+                              <SelectTrigger className="w-32 border-gray-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="lead">Lead</SelectItem>
+                                <SelectItem value="co_lead">Co Lead</SelectItem>
+                                <SelectItem value="executive">Executive</SelectItem>
+                                <SelectItem value="core">Core</SelectItem>
+                                <SelectItem value="member">Member</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Button
+                                onClick={() => removeMember(member.id)}
+                                variant="destructive"
+                                size="sm"
+                                className="p-2 bg-red-500 hover:bg-red-600 text-white rounded"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                      ) : (
+                          <Badge
+                              className={
+                                member.role === "lead" || member.role === "co_lead"
+                                    ? "bg-[#4285F4] text-white"
+                                    : member.role === "executive"
+                                        ? "bg-[#DB4437] text-white"
+                                        : member.role === "core"
+                                            ? "bg-[#0F9D58] text-white"
+                                            : "bg-gray-200 text-gray-600"
+                              }
+                          >
+                            {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                          </Badge>
+                      )}
                     </div>
                   </div>
               );

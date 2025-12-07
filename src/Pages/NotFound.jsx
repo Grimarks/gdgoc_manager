@@ -10,7 +10,8 @@ export default function NotFound() {
         <div className="text-center">
           <h1 className="mb-4 text-5xl font-bold text-black">404</h1>
           <p className="mb-4 text-lg text-gray-600">
-            Oops! Page not found
+            Oops! Page not found!
+            Tunggu nanti yaaa
           </p>
 
           <a
